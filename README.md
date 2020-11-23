@@ -1,6 +1,12 @@
 # Number-Plate-Recognition
 
-
+### Installation
 Pytesseract: https://github.com/UB-Mannheim/tesseract/wiki
-pip install pytesseract
-pip install pillow (if needed)
+
+### Framework
+
+```sh
+$ pip install pytesseract
+$ pip install pillow
+$ pip install imutils
+```
