@@ -3,10 +3,11 @@
 ### Installation
 Pytesseract: https://github.com/UB-Mannheim/tesseract/wiki
 
-### Framework
+### Tools
 
 ```sh
 $ pip install pytesseract
-$ pip install pillow
+$ pip install opencv-python
+$ pip install numpy
 $ pip install imutils
 ```
