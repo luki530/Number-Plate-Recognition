@@ -4,7 +4,7 @@ import numpy as np
 import pytesseract
 
 def plate_txt(img):
-    pytesseract.pytesseract.tesseract_cmd = r'C:\\Users\\Mylosz\\AppData\\Local\\Tesseract-OCR\\tesseract.exe'
+    pytesseract.pytesseract.tesseract_cmd = r'<PATH TO TESSERACT>\\Tesseract-OCR\\tesseract.exe'
 
     #img = cv2.resize(img, (100,22) )
 
