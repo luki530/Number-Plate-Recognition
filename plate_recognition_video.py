@@ -3,6 +3,7 @@ import cv2
 import os
 import tensorflow as tf
 from time import time
+import plate_to_txt
 
 def plate_recognition(video_path, video_out_path, txt_out_path, model):
     # Output file init
@@ -86,7 +87,7 @@ def plate_recognition(video_path, video_out_path, txt_out_path, model):
                                                              # so it doesnt try to recognize the character from the flag and country
 
                     cropped_plate = frame_original[y_min:y_max, x_min_cropped:x_max]
-                    text = 'test123'
+                    text = plate_to_txt.plate_txt(cropped_plate)
                     plates_txt.append(text)
 
                     frame_result = cv2.rectangle(frame_result,(x_min, y_min),(x_max, y_max),(0, 255, 0), 1) # Cropping plate from orginal frame
@@ -154,14 +155,3 @@ def current_video_time(current_frame, video_fps):
     seconds %= 60
     
     return "%02d:%02d" % (minutes, seconds)
-
-def main():
-    model = tf.saved_model.load('./yolo_model') # model import
-
-    video_path = './videos/grupaA3.mp4'
-    video_out_path = './videos/grupaA3_detected.mp4'
-    txt_out_path = './videos/grupaA3_detected.txt'
-
-    plate_recognition(video_path, video_out_path, txt_out_path, model)
-
-main()
