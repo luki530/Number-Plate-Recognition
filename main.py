@@ -21,8 +21,6 @@ sr_model.readModel(sr_model_path)
 
 sr_model.setModel("fsrcnn", 4)
 
-#tesseract_path = r'<ENTER YOUR PATH TO>\Tesseract-OCR\tesseract.exe'
-tesseract_path = r'C:\Users\Mylosz\AppData\Local\Tesseract-OCR\tesseract.exe'
-
+tesseract_path = r'<ENTER YOUR PATH TO>\Tesseract-OCR\tesseract.exe'
 
 plate_recognition_video.plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_model, tesseract_path)
