@@ -2,6 +2,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/opencv,python,pycharm,vscode
 # Edit at https://www.toptal.com/developers/gitignore?templates=opencv,python,pycharm,vscode
 
+### Model directory ###
+yolo_model/
+
 ### OpenCV ###
 #OpenCV for Mac and Linux
 #build and release folders
@@ -255,7 +258,7 @@ dmypy.json
 .prof
 
 ### vscode ###
-.vscode/*
+.vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
