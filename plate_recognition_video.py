@@ -5,7 +5,7 @@ import tensorflow as tf
 from time import time
 import plate_to_txt
 
-def plate_recognition(video_path, video_out_path, txt_out_path, model):
+def plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_model, tesseract_path):
     # Output file init
     txt_file = open(txt_out_path, 'w')
 
@@ -50,7 +50,7 @@ def plate_recognition(video_path, video_out_path, txt_out_path, model):
 
             # Plate detecion
             data = tf.constant(frames)
-            infer = model.signatures['serving_default']
+            infer = yolo_model.signatures['serving_default']
             
             predictions = infer(data)
 
@@ -84,10 +84,10 @@ def plate_recognition(video_path, video_out_path, txt_out_path, model):
                 
                 if x_max - x_min > 90: # adding only plates wider than 90 px
                     x_min_cropped = int(x_min + (x_max - x_min)*0.1) # Cropping 10% of a plate from the left side
-                                                             # so it doesnt try to recognize the character from the flag and country
+                                                                     # so it doesnt try to recognize the character from the flag and country
 
                     cropped_plate = frame_original[y_min:y_max, x_min_cropped:x_max]
-                    text = plate_to_txt.plate_txt(cropped_plate)
+                    text = plate_to_txt.plate_txt(cropped_plate, sr_model, tesseract_path)
                     plates_txt.append(text)
 
                     frame_result = cv2.rectangle(frame_result,(x_min, y_min),(x_max, y_max),(0, 255, 0), 1) # Cropping plate from orginal frame
@@ -135,7 +135,7 @@ def write_txt_log(path, plates_txt, time, first = False, last = False):
 
             if len(plates_last_line) != len(plates_txt):
                 # Different ammount of detected plates
-                if len(plates_txt) != 0 or plates_last_line[0] != ' ': # Solved problem with no tables detected
+                if len(plates_txt) != 0 or plates_last_line[0] != ' ': # Solved problem (when no tables were detected)
                     different = True
             else:   
                 for plate_txt in plates_txt:
@@ -149,6 +149,7 @@ def write_txt_log(path, plates_txt, time, first = False, last = False):
                     f.write("Liczba wykrytych tablic: " + str(len(plates_txt)) + "; " + ', '.join(str(plate) for plate in plates_txt) + "; czas: " + time + " - ")
 
 def current_video_time(current_frame, video_fps):
+    # Returning video time from the given frame number
     seconds = int(current_frame / video_fps)
 
     minutes = int(seconds / 60)

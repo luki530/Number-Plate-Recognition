@@ -1,25 +1,12 @@
-  
 import cv2
 import imutils
 import numpy as np
 import pytesseract
 from cv2 import dnn_superres
 from scipy.ndimage import interpolation as inter
+from time import time
 
-def upscale_image(img):
-    # Creating an Super Resolution(SR) object
-    sr = dnn_superres.DnnSuperResImpl_create()
-
-    #Setting path for model
-    #This loads all the variables of the chosen model and prepares the neural network for inference. The parameter is the path to your downloaded pre-trained model. 
-    path = "EDSR_x4.pb"
-    sr.readModel(path)
-
-    #Setting SR model
-    #1st par.: Name of the model which has to be correctly choosen based on model specified in sr.readModel()
-    #2nd par.: parameter Upscaling factor, i.e. how many times you will increase the resolution. Again, this needs to match with your chosen model
-    sr.setModel("edsr", 4)
-
+def upscale_image(img, sr):
     #This is the inference part, which runs your image through the neural network and produces your upscaled image.
     img = sr.upsample(img)
 
@@ -72,21 +59,20 @@ def correct_skew(image, delta=1, limit=5):
 
     return best_angle, rotated
 
-def plate_txt(img):
-    pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+def plate_txt(img, sr, tesseract_path):
+    pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
     # Straightening the image
     angle,img = correct_skew(img)   
 
     # Upscaling the image
-    img = upscale_image(img)
+    img = upscale_image(img, sr)
 
     # Cleaning the image
     img = clean_image(img)
 
-    cv2.imshow('car',img)
-
     #reading the text from the image
     text = pytesseract.image_to_string(img, config=' --psm 8 -c tessedit_char_whitelist=0123456789QWERTYUIOPASDFGHJKLZXCVBNM')
+    text = "\n".join([ll.rstrip() for ll in text.splitlines() if ll.strip()]) # cropp '\n\x0c' from end of the 'text' variable
 
     return text
