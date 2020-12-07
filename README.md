@@ -22,6 +22,7 @@ $ pip install tensorflow
 $ pip install numpy
 $ pip install scipy
 $ pip install imutils
+$ pip install pytesseract
 ```
 #### Model:
 [DOWNLOAD YOLO MODEL](https://drive.google.com/file/d/1f9egCY_zJQ6nrXvJXd0i3cxqXnnik_1u/view?usp=sharing) and put "yolo_model" folder to the main project folder. 
