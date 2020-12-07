@@ -8,9 +8,6 @@ import os
 
 yolo_model = tf.saved_model.load('./yolo_model') # model import
 
-video_path = ''
-video_out_path = ''
-txt_out_path = ''
 
 sr_model = dnn_superres.DnnSuperResImpl_create()
 
@@ -46,7 +43,6 @@ class MainWindow(QWidget):
 
         self.filePath = QLineEdit()
         self.filePath.setReadOnly(True)
-        self.filePath.setText(video_path)
 
         self.chooseFileButton.clicked.connect(self.openFileDialog)
         self.processVideoButton.clicked.connect(self.processVideo)
@@ -61,15 +57,15 @@ class MainWindow(QWidget):
 
         self.progressBar = QProgressBar(self)
 
-        finishLabel = QLabel(self)
-        finishLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.finishLabel = QLabel(self)
+        self.finishLabel.setAlignment(QtCore.Qt.AlignCenter)
 
         tableView.addLayout(hView, 0, 0, 2, 2)
         tableView.addWidget(self.filePath, 1, 0, 2, 2)
         tableView.addWidget(self.progressBar, 2, 0, 2, 2)
-        tableView.addWidget(finishLabel, 3,0,2,2)
+        tableView.addWidget(self.finishLabel, 3,0,2,2)
 
-        #
+      
         self.progressBar.setValue(50)
         
         self.setLayout(tableView)
@@ -84,23 +80,23 @@ class MainWindow(QWidget):
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self,"Choose video file path...", "","Video Files (*.mp4)", options=options)
         if fileName:
-            video_path=fileName
-            video_out_path = fileName[0:-4] + "_detected" + fileName[-4:]
-            txt_out_path = fileName[0:-4] + "_detected.txt"
-            self.filePath.setText(video_path)
+            self.video_path=fileName
+            self.video_out_path = fileName[0:-4] + "_detected" + fileName[-4:]
+            self.txt_out_path = fileName[0:-4] + "_detected.txt"
+            self.filePath.setText(self.video_path)
             
     def processVideo(self):
         self.filePath.setEnabled(False)
         self.chooseFileButton.setEnabled(False)
-        avg_fps = plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_model, tesseract_path)
-        self.finishLabel.setText("FINISHED !!!  AVG FPS: " + avg_fps)
+        avg_fps = plate_recognition(self.video_path, self.video_out_path, self.txt_out_path, yolo_model, sr_model, tesseract_path)
+        self.finishLabel.setText("FINISHED !!!  AVG FPS: " + str(avg_fps))
         self.playVideoButton.setEnabled(True)
         self.viewLogButton.setEnabled(True)
 
     def playVideo(self):
-        os.system("start " + video_out_path)
+        os.system("start " + self.video_out_path)
     def viewLog(self):
-        os.system("start " + txt_out_path)
+        os.system("start " + self.txt_out_path)
 
 
 
