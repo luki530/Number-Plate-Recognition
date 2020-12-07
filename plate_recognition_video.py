@@ -3,7 +3,7 @@ import cv2
 import os
 import tensorflow as tf
 from time import time
-import plate_to_txt
+from plate_to_txt import plate_txt
 
 def plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_model, tesseract_path):
     # Output file init
@@ -23,19 +23,8 @@ def plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_m
 
     time_start = time()
 
-    skip = False # changes to true when there was no plates detected
-
     while (True): # breaks when frame is unavailable    
         
-        if skip == True:
-            for i in range(10):
-                ret, frame_original = video_original.read()
-                if ret == True:
-                    video_output.write(frame_original)
-                else:
-                    break
-            skip = False
-
         ret, frame_original = video_original.read()
         if ret == True: # if frame is available: ret = True
             # Changing format and size of a frame
@@ -69,8 +58,8 @@ def plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_m
                 score_threshold=0.5
             )
 
-            frame_result = frame_original.copy()
             plates_txt = []
+            plates_coords = []
 
             detected_plates_number = int(np.count_nonzero(boxes.numpy()[0]) / 4) # devided by 4 -> each plate has 4 coords
             for i in range(detected_plates_number):
@@ -85,17 +74,11 @@ def plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_m
                 if x_max - x_min > 90: # adding only plates wider than 90 px
                     x_min_cropped = int(x_min + (x_max - x_min)*0.1) # Cropping 10% of a plate from the left side
                                                                      # so it doesnt try to recognize the character from the flag and country
-
                     cropped_plate = frame_original[y_min:y_max, x_min_cropped:x_max]
-                    text = plate_to_txt.plate_txt(cropped_plate, sr_model, tesseract_path)
+                    text = plate_txt(cropped_plate, sr_model, tesseract_path)
                     plates_txt.append(text)
+                    plates_coords.append(((x_min, y_min),(x_max, y_max)))
 
-                    frame_result = cv2.rectangle(frame_result,(x_min, y_min),(x_max, y_max),(0, 255, 0), 1) # Cropping plate from orginal frame
-                    frame_result = cv2.putText(frame_result, text,(x_min, y_min), cv2.FONT_ITALIC, 0.5, (0, 255, 0), 1) # Cropping plate from orginal frame  
-
-            if len(plates_txt) == 0:
-                skip = True
-            
             current_frame = int(video_original.get(cv2.CAP_PROP_POS_FRAMES))
             if current_frame == 1:
                 # When it's the first frame of the video
@@ -103,10 +86,33 @@ def plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_m
             else:
                 write_txt_log(txt_out_path, plates_txt, current_video_time(current_frame, video_fps))
 
-            video_output.write(frame_result)
+            if len(plates_txt) == 0: # When there is no plates detected
+                video_output.write(frame_original)
 
+                for i in range(10): # skips 10 frames if there is no plates detected
+                    ret, frame_original = video_original.read()
+                    if ret == True:
+                        video_output.write(frame_original)
+                    else:
+                        break
+
+            else: # When there is at least one plate detected
+                # Mark the same plates in current and next plate (saves time)
+                frames = [frame_original]
+                ret, frame_original_2 = video_original.read()
+                if ret == True:
+                    frames.append(frame_original_2)
+                
+                for frame in frames: 
+                    frame_result = frame.copy()
+
+                    for i in range(len(plates_txt)):
+                        frame_result = cv2.rectangle(frame_result, plates_coords[i][0], plates_coords[i][1], (0, 255, 0), 1)
+                        frame_result = cv2.putText(frame_result, plates_txt[i], plates_coords[i][0], cv2.FONT_ITALIC, 0.5, (0, 255, 0), 1)
+                    
+                    video_output.write(frame_result)
         else:
-            break
+            break # breaks from loop when frame is unavailable (video ends)
 
     write_txt_log(txt_out_path, [], current_video_time(int(video_original.get(cv2.CAP_PROP_POS_FRAMES)), video_fps), last = True)
 
