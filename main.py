@@ -1,5 +1,5 @@
 import tensorflow as tf
-import plate_recognition_video
+from plate_recognition_video import plate_recognition
 from cv2 import dnn_superres
 
 yolo_model = tf.saved_model.load('./yolo_model') # model import
@@ -23,4 +23,4 @@ sr_model.setModel("fsrcnn", 4)
 
 tesseract_path = r'<ENTER YOUR PATH TO>\Tesseract-OCR\tesseract.exe'
 
-plate_recognition_video.plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_model, tesseract_path)
+avg_fps = plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_model, tesseract_path)

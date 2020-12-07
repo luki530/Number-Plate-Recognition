@@ -111,9 +111,10 @@ def plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_m
     write_txt_log(txt_out_path, [], current_video_time(int(video_original.get(cv2.CAP_PROP_POS_FRAMES)), video_fps), last = True)
 
     avg_fps = video_length / (time() - time_start)
-    print("Avg fps: " + str(avg_fps))
 
     video_output.release()
+
+    return avg_fps
 
 def write_txt_log(path, plates_txt, time, first = False, last = False):
     if first:
