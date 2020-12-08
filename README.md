@@ -2,12 +2,15 @@
 
 ## Installation
 
+#### Python:
+[Python 3.8](https://www.python.org/downloads/release/python-386/)
+
 #### Frameworks:
 
 Install Tesseract framework manually from the following link:
 https://github.com/UB-Mannheim/tesseract/wiki
 
-Installation with pip:
+Install with pip:
 
 * [OpenCV](https://opencv.org)
 * [TensorFlow](https://www.tensorflow.org)
@@ -25,6 +28,13 @@ $ pip install imutils
 $ pip install PyQt5
 ```
 #### Model:
-[DOWNLOAD YOLO MODEL](https://drive.google.com/file/d/1f9egCY_zJQ6nrXvJXd0i3cxqXnnik_1u/view?usp=sharing) and put "yolo_model" folder to the main project folder. 
+[DOWNLOAD YOLO MODEL](https://drive.google.com/file/d/1f9egCY_zJQ6nrXvJXd0i3cxqXnnik_1u/view?usp=sharing) and put "yolo_model" folder to the main project folder.  
 
-Model was created using: https://github.com/theAIGuysCode/yolov4-custom-functions
+>Model was created using: https://github.com/theAIGuysCode/yolov4-custom-functions
+
+## Usage
+
+To run the program you'll need to run 'main.py' file.
+```sh
+$ python main.py
+```

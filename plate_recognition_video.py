@@ -9,21 +9,22 @@ def plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_m
     # Output file init
     txt_file = open(txt_out_path, 'w')
 
-    # Video load and resize
     FRAME_SIZE = 416
-
     video_original = cv2.VideoCapture(video_path) # Video read
     
+    # Geting info about the video
     video_width = int(video_original.get(3))
     video_height = int(video_original.get(4))
     video_fps = int(video_original.get(cv2.CAP_PROP_FPS))
     video_length = int(video_original.get(cv2.CAP_PROP_FRAME_COUNT)) # in frames
 
+    # Initialization of the result video
     video_output = cv2.VideoWriter(video_out_path, cv2.VideoWriter_fourcc(*'mp4v'), video_fps, (video_width, video_height))
 
+    # Start to measure time of the recognition process
     time_start = time()
 
-    while (True): # breaks when frame is unavailable    
+    while (True): # breaks when it fails to read frame   
         
         ret, frame_original = video_original.read()
         if ret == True: # if frame is available: ret = True
@@ -73,18 +74,19 @@ def plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_m
                 
                 if x_max - x_min > 90: # adding only plates wider than 90 px
                     x_min_cropped = int(x_min + (x_max - x_min)*0.1) # Cropping 10% of a plate from the left side
-                                                                     # so it doesnt try to recognize the character from the flag and country
-                    cropped_plate = frame_original[y_min:y_max, x_min_cropped:x_max]
+                                                                     # so it doesnt attempt to recognize the character from the flag and country
+                    cropped_plate = frame_original[y_min:y_max, x_min_cropped:x_max] # cropped plate from original frame
                     text = plate_txt(cropped_plate, sr_model, tesseract_path)
                     plates_txt.append(text)
                     plates_coords.append(((x_min, y_min),(x_max, y_max)))
 
             current_frame = int(video_original.get(cv2.CAP_PROP_POS_FRAMES))
+            video_time = current_video_time(current_frame, video_fps)
             if current_frame == 1:
                 # When it's the first frame of the video
-                write_txt_log(txt_out_path, plates_txt, current_video_time(current_frame, video_fps), first = True)
+                write_txt_log(txt_out_path, plates_txt, video_time, first = True)
             else:
-                write_txt_log(txt_out_path, plates_txt, current_video_time(current_frame, video_fps))
+                write_txt_log(txt_out_path, plates_txt, video_time)
 
             if len(plates_txt) == 0: # When there is no plates detected
                 video_output.write(frame_original)
