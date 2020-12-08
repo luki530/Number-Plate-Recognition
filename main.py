@@ -36,6 +36,7 @@ class MainWindow(QWidget):
 
         self.chooseFileButton = QPushButton("&Choose File", self)
         self.processVideoButton = QPushButton("&Process Video", self)
+        self.processVideoButton.setEnabled(False)
         self.playVideoButton = QPushButton("&Play Video", self)
         self.playVideoButton.setEnabled(False)
         self.viewLogButton = QPushButton("&View Log", self)
@@ -55,18 +56,12 @@ class MainWindow(QWidget):
         hView.addWidget(self.playVideoButton)
         hView.addWidget(self.viewLogButton)
 
-        self.progressBar = QProgressBar(self)
-
         self.finishLabel = QLabel(self)
         self.finishLabel.setAlignment(QtCore.Qt.AlignCenter)
 
         tableView.addLayout(hView, 0, 0, 2, 2)
         tableView.addWidget(self.filePath, 1, 0, 2, 2)
-        tableView.addWidget(self.progressBar, 2, 0, 2, 2)
         tableView.addWidget(self.finishLabel, 3,0,2,2)
-
-      
-        self.progressBar.setValue(50)
         
         self.setLayout(tableView)
 
@@ -78,25 +73,32 @@ class MainWindow(QWidget):
     def openFileDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self,"Choose video file path...", "","Video Files (*.mp4)", options=options)
+        fileName, _ = QFileDialog.getOpenFileName(self,"Choose video file path...", "","Video Files (*.mp4 *.avi *.mov *.mkv)", options=options)
         if fileName:
             self.video_path=fileName
             self.video_out_path = fileName[0:-4] + "_detected" + fileName[-4:]
             self.txt_out_path = fileName[0:-4] + "_detected.txt"
             self.filePath.setText(self.video_path)
+            self.playVideoButton.setEnabled(False)
+            self.viewLogButton.setEnabled(False)
+            self.processVideoButton.setEnabled(True)
+            self.finishLabel.setText("")
             
     def processVideo(self):
         self.filePath.setEnabled(False)
         self.chooseFileButton.setEnabled(False)
+        self.finishLabel.setText("PROCESSING VIDEO !!! PLEASE WAIT")
         avg_fps = plate_recognition(self.video_path, self.video_out_path, self.txt_out_path, yolo_model, sr_model, tesseract_path)
         self.finishLabel.setText("FINISHED !!!  AVG FPS: " + str(avg_fps))
         self.playVideoButton.setEnabled(True)
         self.viewLogButton.setEnabled(True)
+        self.filePath.setEnabled(True)
+        self.chooseFileButton.setEnabled(True)
 
     def playVideo(self):
-        os.system("start " + self.video_out_path)
+        os.system("start " + self.video_out_path.replace(' ', '" "'))
     def viewLog(self):
-        os.system("start " + self.txt_out_path)
+        os.system("start " + self.txt_out_path.replace(' ', '" "'))
 
 
 
