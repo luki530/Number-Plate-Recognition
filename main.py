@@ -1,5 +1,6 @@
 import tensorflow as tf
 from plate_recognition_video import plate_recognition
+from video_validate import video_validate
 from cv2 import dnn_superres
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QHBoxLayout, QPushButton, QGridLayout, QInputDialog, QLineEdit, QFileDialog, QProgressBar
@@ -85,15 +86,18 @@ class MainWindow(QWidget):
             self.finishLabel.setText("")
             
     def processVideo(self):
-        self.filePath.setEnabled(False)
-        self.chooseFileButton.setEnabled(False)
-        self.finishLabel.setText("PROCESSING VIDEO !!! PLEASE WAIT")
-        avg_fps = plate_recognition(self.video_path, self.video_out_path, self.txt_out_path, yolo_model, sr_model, tesseract_path)
-        self.finishLabel.setText("FINISHED !!!  AVG FPS: " + str(avg_fps))
-        self.playVideoButton.setEnabled(True)
-        self.viewLogButton.setEnabled(True)
-        self.filePath.setEnabled(True)
-        self.chooseFileButton.setEnabled(True)
+        validation = video_validate(self.video_path)
+        if validation == 0:
+            self.filePath.setEnabled(False)
+            self.chooseFileButton.setEnabled(False)
+            avg_fps = plate_recognition(self.video_path, self.video_out_path, self.txt_out_path, yolo_model, sr_model, tesseract_path)
+            self.finishLabel.setText("FINISHED !!!  AVG FPS: " + str(avg_fps))
+            self.playVideoButton.setEnabled(True)
+            self.viewLogButton.setEnabled(True)
+            self.filePath.setEnabled(True)
+            self.chooseFileButton.setEnabled(True)
+        else:
+            self.finishLabel.setText(str(validation))
 
     def playVideo(self):
         os.system("start " + self.video_out_path.replace(' ', '" "'))
