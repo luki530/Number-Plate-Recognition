@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import os
 import tensorflow as tf
+from copy import deepcopy
 from time import time
 from plate_to_txt import plate_txt
 
@@ -77,7 +78,12 @@ def plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_m
                                                                      # so it doesnt attempt to recognize the character from the flag and country
                     cropped_plate = frame_original[y_min:y_max, x_min_cropped:x_max] # cropped plate from original frame
                     text = plate_txt(cropped_plate, sr_model, tesseract_path)
-                    plates_txt.append(text)
+                    
+                    if len(text) >= 5 and len(text) <= 9:
+                        plates_txt.append(text)
+                    else:
+                        plates_txt.append('')
+
                     plates_coords.append(((x_min, y_min),(x_max, y_max)))
 
             current_frame = int(video_original.get(cv2.CAP_PROP_POS_FRAMES))
@@ -125,10 +131,15 @@ def plate_recognition(video_path, video_out_path, txt_out_path, yolo_model, sr_m
     return avg_fps
 
 def write_txt_log(path, plates_txt, time, first = False, last = False):
+    # Remove empty elements
+    plates_txt_empty_remove = deepcopy(plates_txt)
+    if '' in plates_txt_empty_remove:
+        plates_txt_empty_remove.remove('')
+
     if first:
         # First detected frame -> create new txt file
         with open(path, 'w') as f:
-            f.write("Liczba wykrytych tablic: " + str(len(plates_txt)) + "; " + ', '.join(str(plate) for plate in plates_txt) + "; czas: " + time + " - ")
+            f.write("Liczba wykrytych tablic: " + str(len(plates_txt)) + "; " + ', '.join(str(plate) for plate in plates_txt_empty_remove) + "; czas: " + time + " - ")
     elif last:
         # Last frame
         with open(path, 'a') as f:
@@ -140,22 +151,26 @@ def write_txt_log(path, plates_txt, time, first = False, last = False):
 
             different = False # by default plates in previous frame and current frame are the same
 
-            plates_last_line = last_line.split(';')[1].split(',')
+            plates_last_line = last_line.split('; ')[1].split(',')
+            no_plates_last_line = last_line.split(';')[0].split(': ')[1]
 
-            if len(plates_last_line) != len(plates_txt):
+            if no_plates_last_line != str(len(plates_txt)):
                 # Different ammount of detected plates
-                if len(plates_txt) != 0 or plates_last_line[0] != ' ': # Solved problem (when no tables were detected)
+                different = True
+            elif len(plates_last_line) != len(plates_txt_empty_remove):
+                # Different ammount of detected text of plates
+                if len(plates_txt_empty_remove) != 0 or plates_last_line[0] != '': # Solved problem (when no tables were detected)
                     different = True
             else:   
-                for plate_txt in plates_txt:
-                    if plate_txt not in last_line:
+                for plate_txt in plates_txt_empty_remove:
+                    if plate_txt not in plates_last_line:
                         # Different plate detected
                         different = True
 
             if different == True:
                 with open(path, 'a') as f:
                     f.write(time + "\n") # current time
-                    f.write("Liczba wykrytych tablic: " + str(len(plates_txt)) + "; " + ', '.join(str(plate) for plate in plates_txt) + "; czas: " + time + " - ")
+                    f.write("Liczba wykrytych tablic: " + str(len(plates_txt)) + "; " + ', '.join(str(plate) for plate in plates_txt_empty_remove) + "; czas: " + time + " - ")
 
 def current_video_time(current_frame, video_fps):
     # Returning video time from the given frame number
